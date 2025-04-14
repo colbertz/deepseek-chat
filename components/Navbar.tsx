@@ -6,6 +6,7 @@ import {
   Settings,
   ChevronLeft
 } from 'lucide-react';
+import { useConversationFetcher } from './ConversationFetcher';
 
 interface NavbarProps {
   darkMode: boolean;
@@ -13,6 +14,8 @@ interface NavbarProps {
 }
 
 export default function Navbar({ darkMode, setNavOpen }: NavbarProps) {
+  const { conversations, loading } = useConversationFetcher();
+  
   return (
     <div 
       className={`w-64 
@@ -42,16 +45,69 @@ export default function Navbar({ darkMode, setNavOpen }: NavbarProps) {
       </button>
 
       {/* Chat History */}
-      <div className="flex-1 overflow-y-auto">
-        <h2 className="text-gray-400 text-sm mb-2">RECENT CHATS</h2>
-        <div className="space-y-1">
-          {[1, 2, 3].map((item) => (
-            <div key={item} className={`p-2 rounded cursor-pointer 
-            hover:${darkMode ? 'bg-gray-700' : 'bg-gray-300'}`}>
-              Chat {item}
-            </div>
-          ))}
-        </div>
+      <div className="flex-1 overflow-y-auto pb-4">
+        {loading ? (
+          <div className="text-center py-4 text-gray-400">Loading...</div>
+        ) : (
+          <div className="space-y-4">
+            {conversations.today.length > 0 && (
+              <div>
+                <h3 className="text-xs text-gray-400 mb-1">Today</h3>
+                {conversations.today.map(conv => (
+                  <div key={conv.id} className={`group p-2 rounded cursor-pointer transition-all duration-200
+                  ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-300'}`}>
+                    <span className={`block group-hover:scale-[1.02] transition-transform duration-200
+                    ${darkMode ? 'group-hover:text-gray-100' : 'group-hover:text-gray-900'}`}>
+                      {conv.title}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {conversations.last7Days.length > 0 && (
+              <div>
+                <h3 className="text-xs text-gray-400 mb-1">Last 7 Days</h3>
+                {conversations.last7Days.map(conv => (
+                  <div key={conv.id} className={`group p-2 rounded cursor-pointer transition-all duration-200
+                  ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-300'}`}>
+                    <span className={`block group-hover:scale-[1.02] transition-transform duration-200
+                    ${darkMode ? 'group-hover:text-gray-100' : 'group-hover:text-gray-900'}`}>
+                      {conv.title}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {conversations.last30Days.length > 0 && (
+              <div>
+                <h3 className="text-xs text-gray-400 mb-1">Last 30 Days</h3>
+                {conversations.last30Days.map(conv => (
+                  <div key={conv.id} className={`group p-2 rounded cursor-pointer transition-all duration-200
+                  ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-300'}`}>
+                    <span className={`block group-hover:scale-[1.02] transition-transform duration-200
+                    ${darkMode ? 'group-hover:text-gray-100' : 'group-hover:text-gray-900'}`}>
+                      {conv.title}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+            {conversations.older.length > 0 && (
+              <div>
+                <h3 className="text-xs text-gray-400 mb-1">Older</h3>
+                {conversations.older.map(conv => (
+                  <div key={conv.id} className={`group p-2 rounded cursor-pointer transition-all duration-200
+                  ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-300'}`}>
+                    <span className={`block group-hover:scale-[1.02] transition-transform duration-200
+                    ${darkMode ? 'group-hover:text-gray-100' : 'group-hover:text-gray-900'}`}>
+                      {conv.title}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
       </div>
 
       {/* Bottom Section */}
