@@ -2,7 +2,9 @@ use axum::{
     routing::get,
     Router,
     Json,
+    http::Method,
 };
+use tower_http::cors::{CorsLayer, Any};
 use serde::Serialize;
 use std::time::{SystemTime, UNIX_EPOCH};
 
@@ -18,7 +20,12 @@ async fn main() {
     // 构建路由
     let app = Router::new()
         .route("/", get(root))
-        .route("/conversations", get(get_conversations));
+        .route("/conversations", get(get_conversations))
+        .layer(
+            CorsLayer::new()
+                .allow_methods([Method::GET])
+                .allow_origin(Any)
+        );
 
     // 启动服务器
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8000").await.unwrap();
