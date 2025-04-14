@@ -1,36 +1,77 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# DeepSeek Chat Clone
 
-## Getting Started
+本项目是一个模仿DeepSeek官网的聊天Web应用，完全由Cline+DeepSeek AI辅助开发完成。
 
-First, run the development server:
+## 项目特点
+
+- 🚀 100% AI辅助开发 - 所有代码由Cline+DeepSeek协作完成
+- 💬 模仿DeepSeek官网的聊天界面和交互
+- ⚡ 现代化技术栈，前后端分离架构
+
+## 技术栈
+
+### 前端
+- Next.js 14 (App Router)
+- TypeScript
+- Tailwind CSS
+- React Hooks
+
+### 后端
+- Rust
+- Axum Web框架
+- 支持CORS跨域访问
+
+## 本地运行
+
+### 前端开发服务器
 
 ```bash
-npm run dev
-# or
-yarn dev
-# or
+# 安装依赖
+pnpm install
+
+# 启动开发服务器
 pnpm dev
-# or
-bun dev
 ```
 
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
+前端将在 [http://localhost:3000](http://localhost:3000) 运行
 
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
+### 后端服务器
 
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
+```bash
+# 进入后端目录
+cd rest
 
-## Learn More
+# 启动Rust后端
+cargo run
+```
 
-To learn more about Next.js, take a look at the following resources:
+后端将在 [http://localhost:8000](http://localhost:8000) 运行
 
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
+## 项目结构
 
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
+```
+.
+├── app/                # Next.js前端页面
+├── components/         # React组件
+├── config/             # 应用配置
+├── public/             # 静态资源
+└── rest/               # Rust后端服务
+    ├── src/
+    │   └── main.rs     # 后端入口文件
+    └── Cargo.toml      # Rust依赖配置
+```
 
-## Deploy on Vercel
+## 功能特性
 
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
+- 对话历史记录
+- 按时间分组显示
+- 暗黑/明亮模式切换
+- 响应式设计
 
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+## 开发说明
+
+本项目展示了AI辅助开发的强大能力，所有代码均由Cline+DeepSeek协作完成，包括：
+- 前端界面开发
+- 后端API实现
+- 跨域配置
+- 交互效果优化
