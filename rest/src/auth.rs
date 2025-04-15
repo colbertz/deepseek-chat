@@ -214,6 +214,12 @@ pub async fn get_current_user(
         &Validation::default(),
     ).map_err(|_| AuthError::InvalidToken)?;
 
+    // Check if token is expired
+    let now = Utc::now().timestamp() as usize;
+    if token_data.claims.exp < now {
+        return Err(AuthError::InvalidToken);
+    }
+
     // Get user from database
     let user = sqlx::query_as!(
         User,
