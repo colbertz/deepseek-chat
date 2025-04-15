@@ -104,7 +104,7 @@ pub async fn login(
     let user_id = user.id.expect("Valid user should have ID");
     // Verify password (compare with bcrypt hash in auth table)
     let hash = sqlx::query_scalar!(
-        "SELECT password_hash FROM auth WHERE user_id = ?",
+        "SELECT password_hash FROM auth WHERE userid = ?",
         user_id
     )
     .fetch_one(&state.pool)
