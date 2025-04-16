@@ -89,6 +89,8 @@ pub async fn login(
     State(state): State<Arc<AppState>>,
     Json(credentials): Json<LoginRequest>,
 ) -> Result<Json<AuthResponse>, AuthError> {
+    tracing::debug!("Login attempt for email: {}", credentials.email);
+    
     // Verify user credentials against database
     let user: Option<User> = sqlx::query_as!(
         User,
@@ -97,11 +99,25 @@ pub async fn login(
     )
     .fetch_optional(&state.pool)
     .await
-    .map_err(|_| AuthError::DatabaseError)?;
+    .map_err(|e| {
+        tracing::error!("Database error when querying user: {}", e);
+        AuthError::DatabaseError
+    })?;
 
-    let user = user.ok_or(AuthError::InvalidCredentials)?;
+    let user = match user {
+        Some(u) => {
+            tracing::debug!("Found user: {:?}", u);
+            u
+        }
+        None => {
+            tracing::warn!("No user found for email: {}", credentials.email);
+            return Err(AuthError::InvalidCredentials);
+        }
+    };
 
     let user_id = user.id.expect("Valid user should have ID");
+    tracing::debug!("Querying password hash for user_id: {}", user_id);
+    
     // Verify password (compare with bcrypt hash in auth table)
     let hash = sqlx::query_scalar!(
         "SELECT password_hash FROM auth WHERE userid = ?",
@@ -109,14 +125,25 @@ pub async fn login(
     )
     .fetch_one(&state.pool)
     .await
-    .map_err(|_| AuthError::DatabaseError)?;
+    .map_err(|e| {
+        tracing::error!("Database error when querying password hash: {}", e);
+        AuthError::DatabaseError
+    })?;
 
+    tracing::debug!("Password hash retrieved: {}", hash);
+    tracing::debug!("Password retrieved: {}", credentials.password);
     let password_valid = bcrypt::verify(credentials.password, &hash)
-        .map_err(|_| AuthError::InvalidCredentials)?;
+        .map_err(|e| {
+            tracing::error!("BCrypt verification error: {}", e);
+            AuthError::InvalidCredentials
+        })?;
     
     if !password_valid {
+        tracing::warn!("Password verification failed for user_id: {}", user_id);
         return Err(AuthError::InvalidCredentials);
     }
+
+    tracing::debug!("Password verified successfully for user_id: {}", user_id);
 
     // Generate tokens
     let now = Utc::now();

@@ -31,6 +31,15 @@ mod tests {
     use bcrypt;
     use tower::ServiceExt; // Required for oneshot() in tests
 
+    // test for pwd crypt
+    #[test]
+    fn test_bcrypt() {
+        let password = "pwd";
+        let hash = bcrypt::hash(password,10).unwrap();
+        println!("hash: {}", hash);
+        assert!(bcrypt::verify(password, &hash).unwrap());
+    }
+
     #[tokio::test]
     async fn test_login_success() {
         let pool = sqlx::sqlite::SqlitePool::connect("sqlite::memory:")
@@ -652,6 +661,11 @@ mod tests {
 
 #[tokio::main]
 async fn main() {
+    // Initialize logging
+    tracing_subscriber::fmt()
+        .with_max_level(tracing::Level::DEBUG)
+        .init();
+
     dotenv::dotenv().expect("Failed to load .env file");
 
     // Initialize database pool
