@@ -40,7 +40,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("CREATE TABLE auth (user_id INTEGER, password_hash TEXT)")
+        sqlx::query("CREATE TABLE auth (userid INTEGER, password_hash TEXT)")
             .execute(&pool)
             .await
             .unwrap();
@@ -50,7 +50,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("INSERT INTO auth (user_id, password_hash) VALUES (1, ?)")
+        sqlx::query("INSERT INTO auth (userid, password_hash) VALUES (1, ?)")
             .bind(&hash)
             .execute(&pool)
             .await
@@ -95,7 +95,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("CREATE TABLE auth (user_id INTEGER, password_hash TEXT)")
+        sqlx::query("CREATE TABLE auth (userid INTEGER, password_hash TEXT)")
             .execute(&pool)
             .await
             .unwrap();
@@ -138,7 +138,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("CREATE TABLE auth (user_id INTEGER, password_hash TEXT)")
+        sqlx::query("CREATE TABLE auth (userid INTEGER, password_hash TEXT)")
             .execute(&pool)
             .await
             .unwrap();
@@ -148,7 +148,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("INSERT INTO auth (user_id, password_hash) VALUES (1, ?)")
+        sqlx::query("INSERT INTO auth (userid, password_hash) VALUES (1, ?)")
             .bind(&hash)
             .execute(&pool)
             .await
@@ -250,7 +250,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("CREATE TABLE auth (user_id INTEGER, password_hash TEXT)")
+        sqlx::query("CREATE TABLE auth (userid INTEGER, password_hash TEXT)")
             .execute(&pool)
             .await
             .unwrap();
@@ -260,7 +260,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("INSERT INTO auth (user_id, password_hash) VALUES (1, ?)")
+        sqlx::query("INSERT INTO auth (userid, password_hash) VALUES (1, ?)")
             .bind(&hash)
             .execute(&pool)
             .await
@@ -331,7 +331,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("CREATE TABLE auth (user_id INTEGER, password_hash TEXT)")
+        sqlx::query("CREATE TABLE auth (userid INTEGER, password_hash TEXT)")
             .execute(&pool)
             .await
             .unwrap();
@@ -341,7 +341,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("INSERT INTO auth (user_id, password_hash) VALUES (1, ?)")
+        sqlx::query("INSERT INTO auth (userid, password_hash) VALUES (1, ?)")
             .bind(&hash)
             .execute(&pool)
             .await
@@ -418,7 +418,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("CREATE TABLE auth (user_id INTEGER, password_hash TEXT)")
+        sqlx::query("CREATE TABLE auth (userid INTEGER, password_hash TEXT)")
             .execute(&pool)
             .await
             .unwrap();
@@ -428,7 +428,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("INSERT INTO auth (user_id, password_hash) VALUES (1, ?)")
+        sqlx::query("INSERT INTO auth (userid, password_hash) VALUES (1, ?)")
             .bind(&hash)
             .execute(&pool)
             .await
@@ -497,7 +497,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("CREATE TABLE auth (user_id INTEGER, password_hash TEXT)")
+        sqlx::query("CREATE TABLE auth (userid INTEGER, password_hash TEXT)")
             .execute(&pool)
             .await
             .unwrap();
@@ -507,7 +507,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("INSERT INTO auth (user_id, password_hash) VALUES (1, ?)")
+        sqlx::query("INSERT INTO auth (userid, password_hash) VALUES (1, ?)")
             .bind(&hash)
             .execute(&pool)
             .await
@@ -577,7 +577,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("CREATE TABLE auth (user_id INTEGER, password_hash TEXT)")
+        sqlx::query("CREATE TABLE auth (userid INTEGER, password_hash TEXT)")
             .execute(&pool)
             .await
             .unwrap();
@@ -587,7 +587,7 @@ mod tests {
             .execute(&pool)
             .await
             .unwrap();
-        sqlx::query("INSERT INTO auth (user_id, password_hash) VALUES (1, ?)")
+        sqlx::query("INSERT INTO auth (userid, password_hash) VALUES (1, ?)")
             .bind(&hash)
             .execute(&pool)
             .await
