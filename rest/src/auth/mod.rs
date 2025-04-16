@@ -1,96 +1,19 @@
-use axum::{
-    extract::State,
-    http::{HeaderMap, StatusCode},
-    response::{IntoResponse, Response},
-    Json,
-};
+pub mod types;
+
+use types::AuthResponse;
+use types::{AppState, AuthError, Claims, LoginRequest, RefreshRequest, User};
+
+use axum::{Json, extract::State, http::HeaderMap};
 use chrono::{Duration, Utc};
-use jsonwebtoken::{decode, encode, DecodingKey, EncodingKey, Header, Validation};
-use serde::{Deserialize, Serialize};
-use serde_json::json;
-use sqlx::sqlite::SqlitePool;
+use jsonwebtoken::{DecodingKey, EncodingKey, Header, Validation, decode, encode};
 use std::sync::Arc;
-
-#[derive(Debug, Deserialize)]
-pub struct LoginRequest {
-    pub email: String,
-    pub password: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct AuthResponse {
-    pub access_token: String,
-    pub refresh_token: String,
-    pub token_type: String,
-    pub expires_in: i64,
-}
-
-#[derive(Debug, Serialize)]
-pub struct User {
-    pub id: Option<i64>,
-    pub email: String,
-    pub role: String,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct RefreshRequest {
-    pub refresh_token: String,
-}
-
-#[derive(Debug)]
-pub enum AuthError {
-    InvalidCredentials,
-    DatabaseError,
-    TokenCreation,
-    InvalidToken,
-    MissingToken,
-}
-
-impl IntoResponse for AuthError {
-    fn into_response(self) -> Response {
-        let (status, error_message) = match self {
-            AuthError::InvalidCredentials => (StatusCode::UNAUTHORIZED, "Invalid credentials"),
-            AuthError::DatabaseError => (StatusCode::INTERNAL_SERVER_ERROR, "Database error"),
-            AuthError::TokenCreation => (StatusCode::INTERNAL_SERVER_ERROR, "Token creation failed"),
-            AuthError::InvalidToken => (StatusCode::UNAUTHORIZED, "Invalid token"),
-            AuthError::MissingToken => (StatusCode::UNAUTHORIZED, "Missing authorization token"),
-        };
-
-        let body = Json(json!({
-            "error": error_message,
-        }));
-
-        (status, body).into_response()
-    }
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct Claims {
-    pub sub: String,
-    pub exp: usize,
-    pub iat: usize,
-    pub role: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct AppState {
-    pub pool: SqlitePool,
-    pub jwt_config: JwtConfig,
-}
-
-#[derive(Debug, Clone)]
-pub struct JwtConfig {
-    pub secret: String,
-    pub access_expiry: i64,
-    pub refresh_expiry: i64,
-}
 
 pub async fn login(
     State(state): State<Arc<AppState>>,
     Json(credentials): Json<LoginRequest>,
 ) -> Result<Json<AuthResponse>, AuthError> {
     tracing::debug!("Login attempt for email: {}", credentials.email);
-    
+
     // Verify user credentials against database
     let user: Option<User> = sqlx::query_as!(
         User,
@@ -117,27 +40,23 @@ pub async fn login(
 
     let user_id = user.id.expect("Valid user should have ID");
     tracing::debug!("Querying password hash for user_id: {}", user_id);
-    
+
     // Verify password (compare with bcrypt hash in auth table)
-    let hash = sqlx::query_scalar!(
-        "SELECT password_hash FROM auth WHERE userid = ?",
-        user_id
-    )
-    .fetch_one(&state.pool)
-    .await
-    .map_err(|e| {
-        tracing::error!("Database error when querying password hash: {}", e);
-        AuthError::DatabaseError
-    })?;
+    let hash = sqlx::query_scalar!("SELECT password_hash FROM auth WHERE userid = ?", user_id)
+        .fetch_one(&state.pool)
+        .await
+        .map_err(|e| {
+            tracing::error!("Database error when querying password hash: {}", e);
+            AuthError::DatabaseError
+        })?;
 
     tracing::debug!("Password hash retrieved: {}", hash);
     tracing::debug!("Password retrieved: {}", credentials.password);
-    let password_valid = bcrypt::verify(credentials.password, &hash)
-        .map_err(|e| {
-            tracing::error!("BCrypt verification error: {}", e);
-            AuthError::InvalidCredentials
-        })?;
-    
+    let password_valid = bcrypt::verify(credentials.password, &hash).map_err(|e| {
+        tracing::error!("BCrypt verification error: {}", e);
+        AuthError::InvalidCredentials
+    })?;
+
     if !password_valid {
         tracing::warn!("Password verification failed for user_id: {}", user_id);
         return Err(AuthError::InvalidCredentials);
@@ -152,7 +71,7 @@ pub async fn login(
 
     let user_id = user.id.expect("Valid user should have ID");
     let role = user.role.clone();
-    
+
     let access_claims = Claims {
         sub: user_id.to_string(),
         exp: access_exp.timestamp() as usize,
@@ -171,13 +90,15 @@ pub async fn login(
         &Header::default(),
         &access_claims,
         &EncodingKey::from_secret(state.jwt_config.secret.as_ref()),
-    ).map_err(|_| AuthError::TokenCreation)?;
+    )
+    .map_err(|_| AuthError::TokenCreation)?;
 
     let refresh_token = encode(
         &Header::default(),
         &refresh_claims,
         &EncodingKey::from_secret(state.jwt_config.secret.as_ref()),
-    ).map_err(|_| AuthError::TokenCreation)?;
+    )
+    .map_err(|_| AuthError::TokenCreation)?;
 
     Ok(Json(AuthResponse {
         access_token,
@@ -197,7 +118,8 @@ pub async fn refresh_token(
         &request.refresh_token,
         &DecodingKey::from_secret(state.jwt_config.secret.as_ref()),
         &Validation::default(),
-    ).map_err(|_| AuthError::InvalidToken)?;
+    )
+    .map_err(|_| AuthError::InvalidToken)?;
 
     // Generate new access token
     let now = Utc::now();
@@ -214,7 +136,8 @@ pub async fn refresh_token(
         &Header::default(),
         &claims,
         &EncodingKey::from_secret(state.jwt_config.secret.as_ref()),
-    ).map_err(|_| AuthError::TokenCreation)?;
+    )
+    .map_err(|_| AuthError::TokenCreation)?;
 
     Ok(Json(AuthResponse {
         access_token,
@@ -239,7 +162,8 @@ pub async fn get_current_user(
         token,
         &DecodingKey::from_secret(state.jwt_config.secret.as_ref()),
         &Validation::default(),
-    ).map_err(|_| AuthError::InvalidToken)?;
+    )
+    .map_err(|_| AuthError::InvalidToken)?;
 
     // Check if token is expired
     let now = Utc::now().timestamp() as usize;
