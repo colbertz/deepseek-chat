@@ -50,7 +50,7 @@ async fn main() {
 
     // 构建路由
     let app = Router::new()
-        .route("/", get(root))
+        .route("/", get(|| async { "Hello, Axum!" }))
         .route("/conversations", get(get_conversations))
         .route("/auth/login", post(login))
         .route("/auth/refresh", post(refresh_token))
@@ -67,9 +67,4 @@ async fn main() {
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8000").await.unwrap();
     println!("Server running on http://localhost:8000");
     axum::serve(listener, app).await.unwrap();
-}
-
-// 基本路由处理器
-async fn root() -> &'static str {
-    "Hello, Axum!"
 }
