@@ -1,5 +1,6 @@
 'use client'
 
+import { useState } from 'react';
 import { 
   MessageSquarePlus, 
   Download, 
@@ -7,14 +8,37 @@ import {
   ChevronLeft
 } from 'lucide-react';
 import { useConversationFetcher } from './ConversationFetcher';
+import { API_BASE_URL } from '../config/api';
 
 interface NavbarProps {
   darkMode: boolean;
   setNavOpen: (open: boolean) => void;
+  setMessages: (messages: Array<{content: string, role: string}>) => void;
+  resetConversation: () => void;
+  selectedConversationId: string | null;
+  setSelectedConversationId: (id: string | null) => void;
 }
 
-export default function Navbar({ darkMode, setNavOpen }: NavbarProps) {
+export default function Navbar({ 
+  darkMode, 
+  setNavOpen, 
+  setMessages,
+  resetConversation,
+  selectedConversationId,
+  setSelectedConversationId
+}: NavbarProps) {
   const { conversations, loading } = useConversationFetcher();
+
+  const handleConversationClick = async (id: string) => {
+    setSelectedConversationId(id);
+    try {
+      const response = await fetch(`${API_BASE_URL}/conversations/${id}`);
+      const messages = await response.json();
+      setMessages(messages);
+    } catch (error) {
+      console.error('Failed to fetch conversation:', error);
+    }
+  };
   
   return (
     <div 
@@ -39,7 +63,13 @@ export default function Navbar({ darkMode, setNavOpen }: NavbarProps) {
       </div>
 
       {/* New Chat Button */}
-      <button className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded mb-6">
+      <button 
+        className="flex items-center gap-2 bg-blue-600 hover:bg-blue-700 text-white py-2 px-4 rounded mb-6"
+        onClick={() => {
+          resetConversation();
+          setSelectedConversationId(null);
+        }}
+      >
         <MessageSquarePlus size={18} />
         New Chat
       </button>
@@ -54,8 +84,12 @@ export default function Navbar({ darkMode, setNavOpen }: NavbarProps) {
               <div>
                 <h3 className="text-xs text-gray-400 mb-1">Today</h3>
                 {conversations.today.map(conv => (
-                  <div key={conv.id} className={`group p-2 rounded cursor-pointer transition-all duration-200
-                  ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-300'}`}>
+                  <div 
+                    key={conv.id} 
+                    onClick={() => handleConversationClick(conv.id)}
+                    className={`group p-2 rounded cursor-pointer transition-all duration-200
+                    ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-300'}
+                    ${selectedConversationId === conv.id ? (darkMode ? 'bg-gray-700' : 'bg-gray-300') : ''}`}>
                     <span className={`block group-hover:scale-[1.02] transition-transform duration-200
                     ${darkMode ? 'group-hover:text-gray-100' : 'group-hover:text-gray-900'}`}>
                       {conv.title}
@@ -68,8 +102,12 @@ export default function Navbar({ darkMode, setNavOpen }: NavbarProps) {
               <div>
                 <h3 className="text-xs text-gray-400 mb-1">Last 7 Days</h3>
                 {conversations.last7Days.map(conv => (
-                  <div key={conv.id} className={`group p-2 rounded cursor-pointer transition-all duration-200
-                  ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-300'}`}>
+                  <div 
+                    key={conv.id} 
+                    onClick={() => handleConversationClick(conv.id)}
+                    className={`group p-2 rounded cursor-pointer transition-all duration-200
+                    ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-300'}
+                    ${selectedConversationId === conv.id ? (darkMode ? 'bg-gray-700' : 'bg-gray-300') : ''}`}>
                     <span className={`block group-hover:scale-[1.02] transition-transform duration-200
                     ${darkMode ? 'group-hover:text-gray-100' : 'group-hover:text-gray-900'}`}>
                       {conv.title}
@@ -82,8 +120,12 @@ export default function Navbar({ darkMode, setNavOpen }: NavbarProps) {
               <div>
                 <h3 className="text-xs text-gray-400 mb-1">Last 30 Days</h3>
                 {conversations.last30Days.map(conv => (
-                  <div key={conv.id} className={`group p-2 rounded cursor-pointer transition-all duration-200
-                  ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-300'}`}>
+                  <div 
+                    key={conv.id} 
+                    onClick={() => handleConversationClick(conv.id)}
+                    className={`group p-2 rounded cursor-pointer transition-all duration-200
+                    ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-300'}
+                    ${selectedConversationId === conv.id ? (darkMode ? 'bg-gray-700' : 'bg-gray-300') : ''}`}>
                     <span className={`block group-hover:scale-[1.02] transition-transform duration-200
                     ${darkMode ? 'group-hover:text-gray-100' : 'group-hover:text-gray-900'}`}>
                       {conv.title}
@@ -96,8 +138,12 @@ export default function Navbar({ darkMode, setNavOpen }: NavbarProps) {
               <div>
                 <h3 className="text-xs text-gray-400 mb-1">Older</h3>
                 {conversations.older.map(conv => (
-                  <div key={conv.id} className={`group p-2 rounded cursor-pointer transition-all duration-200
-                  ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-300'}`}>
+                  <div 
+                    key={conv.id} 
+                    onClick={() => handleConversationClick(conv.id)}
+                    className={`group p-2 rounded cursor-pointer transition-all duration-200
+                    ${darkMode ? 'hover:bg-gray-700' : 'hover:bg-gray-300'}
+                    ${selectedConversationId === conv.id ? (darkMode ? 'bg-gray-700' : 'bg-gray-300') : ''}`}>
                     <span className={`block group-hover:scale-[1.02] transition-transform duration-200
                     ${darkMode ? 'group-hover:text-gray-100' : 'group-hover:text-gray-900'}`}>
                       {conv.title}

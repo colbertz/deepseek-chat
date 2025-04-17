@@ -7,13 +7,15 @@ interface ConversationProps {
   navOpen: boolean;
   setDarkMode: (mode: boolean) => void;
   setNavOpen: (open: boolean) => void;
+  messages: Array<{content: string, role: string}>;
 }
 
 export default function Conversation({
   darkMode,
   navOpen,
   setDarkMode,
-  setNavOpen
+  setNavOpen,
+  messages
 }: ConversationProps) {
   return (
     <div 
@@ -44,15 +46,42 @@ export default function Conversation({
       </button>
 
       {/* Message Area */}
-      <div className="flex-1 p-6 overflow-y-auto flex items-center justify-center">
-        <div className="max-w-3xl mx-auto text-center">
-          <h1 className={`text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
-            Hello, I'm DeepSeek
-          </h1>
-          <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
-            How can I help you today?
-          </p>
-        </div>
+      <div className="flex-1 p-6 overflow-y-auto">
+        {messages.length > 0 ? (
+          <div className="max-w-3xl mx-auto space-y-4">
+            {messages.map((message: {content: string, role: string}, index: number) => (
+              <div 
+                key={index}
+                className={`flex ${message.role === 'user' ? 'justify-end' : 'justify-start'}`}
+              >
+                <div 
+                  className={`max-w-[80%] rounded-lg px-4 py-2 ${
+                    message.role === 'user' 
+                      ? darkMode 
+                        ? 'bg-blue-600 text-white' 
+                        : 'bg-blue-500 text-white'
+                      : darkMode 
+                        ? 'bg-gray-700 text-white' 
+                        : 'bg-gray-200 text-gray-800'
+                  }`}
+                >
+                  {message.content}
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <div className="max-w-3xl mx-auto text-center">
+              <h1 className={`text-4xl font-bold mb-4 ${darkMode ? 'text-white' : 'text-gray-900'}`}>
+                Hello, I'm DeepSeek
+              </h1>
+              <p className={`text-lg ${darkMode ? 'text-gray-300' : 'text-gray-600'}`}>
+                How can I help you today?
+              </p>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Input Area */}

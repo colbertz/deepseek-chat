@@ -9,6 +9,13 @@ export default function Home() {
   const [darkMode, setDarkMode] = useState(true);
   const [navOpen, setNavOpen] = useState(true);
   const [user, setUser] = useState(null);
+  const [messages, setMessages] = useState<Array<{content: string, role: string}>>([]);
+  const [selectedConversationId, setSelectedConversationId] = useState<string | null>(null);
+
+  const resetConversation = () => {
+    setMessages([]);
+    setSelectedConversationId(null);
+  };
   const router = useRouter();
 
   useEffect(() => {
@@ -40,7 +47,14 @@ export default function Home() {
   return (
     <div className={`flex h-screen ${darkMode ? 'bg-gray-900' : 'bg-gray-100'}`}>
       {/* Left Sidebar */}
-      {navOpen && <Navbar darkMode={darkMode} setNavOpen={setNavOpen} />}
+      {navOpen && <Navbar 
+        darkMode={darkMode} 
+        setNavOpen={setNavOpen}
+        setMessages={setMessages}
+        resetConversation={resetConversation}
+        selectedConversationId={selectedConversationId}
+        setSelectedConversationId={setSelectedConversationId}
+      />}
 
       {/* Main Content Area */}
       <Conversation 
@@ -48,6 +62,7 @@ export default function Home() {
         navOpen={navOpen}
         setDarkMode={setDarkMode}
         setNavOpen={setNavOpen}
+        messages={messages}
       />
     </div>
   );

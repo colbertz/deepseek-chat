@@ -29,11 +29,15 @@ export const useConversationFetcher = () => {
         const response = await fetch(`${API_BASE_URL}/conversations`);
         const data: Conversation[] = await response.json();
         
-        const now = Date.now();
+        const now = new Date();
+        const todayStart = new Date(now);
+        todayStart.setHours(0, 0, 0, 0);
+        
         const grouped = data.reduce((acc, conv) => {
-          const diffDays = (now - conv.time) / (1000 * 60 * 60 * 24);
+          const convDate = new Date(conv.time);
+          const diffDays = Math.floor((now.getTime() - convDate.getTime()) / (1000 * 60 * 60 * 24));
           
-          if (diffDays < 1) {
+          if (convDate >= todayStart) {
             acc.today.push(conv);
           } else if (diffDays < 7) {
             acc.last7Days.push(conv);
