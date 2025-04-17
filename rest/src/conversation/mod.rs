@@ -1,57 +1,61 @@
 mod types;
 
-use axum::Json;
-use types::Conversation;
+use std::sync::Arc;
+use axum::{Json, extract::{State, Path}};
+use chrono::NaiveDateTime;
+use std::fs;
+use crate::AppState;
+use types::{Conversation, DbConversation};
 
-use std::time::{SystemTime, UNIX_EPOCH};
 
-pub async fn get_conversations() -> Json<Vec<Conversation>> {
-    let now = SystemTime::now()
-        .duration_since(UNIX_EPOCH)
-        .unwrap()
-        .as_secs()
-        * 1000;
+pub async fn get_conversation_content(
+    Path(id): Path<i64>,
+    State(state): State<Arc<AppState>>,
+) -> Json<serde_json::Value> {
+    let db_conversation = sqlx::query_as::<_, DbConversation>(
+        "SELECT id, title, updatetime, filepath FROM conversation WHERE id = ?"
+    )
+    .bind(id)
+    .fetch_one(&state.pool)
+    .await
+    .unwrap();
 
-    Json(vec![
+    let filepath = "conversations/".to_string() + &db_conversation.filepath;
+    println!("Filepath: {}", filepath);
+    let file_content = fs::read(&filepath)
+        .unwrap_or_else(|e| panic!("Failed to read file {}: {}", db_conversation.filepath, e));
+    
+    let file_content = String::from_utf8(file_content)
+        .unwrap_or_else(|e| panic!("Failed to decode file {} as UTF-8: {}", db_conversation.filepath, e));
+    
+    let json_value: serde_json::Value = serde_json::from_str(&file_content)
+        .unwrap_or_else(|e| panic!("Failed to parse JSON from file {}: {}", db_conversation.filepath, e));
+
+    Json(json_value)
+}
+
+pub async fn get_conversations(
+    State(state): State<Arc<AppState>>,
+) -> Json<Vec<Conversation>> {
+    let db_conversations = sqlx::query_as::<_, DbConversation>(
+        "SELECT id, title, updatetime, filepath FROM conversation ORDER BY updatetime DESC"
+    )
+    .fetch_all(&state.pool)
+    .await
+    .unwrap();
+
+    let conversations = db_conversations.into_iter().map(|db_conv| {
+        let datetime = NaiveDateTime::parse_from_str(&db_conv.updatetime, "%Y-%m-%d %H:%M:%S")
+            .unwrap()
+            .and_utc();
+            
         Conversation {
-            id: "1",
-            title: "Tailwind实现左右布局教程",
-            time: now - 1000 * 60 * 60 * 20,
-        },
-        Conversation {
-            id: "2",
-            title: "Ubuntu setup es mysql minio",
-            time: now - 1000 * 60 * 60 * 20,
-        },
-        Conversation {
-            id: "3",
-            title: "FFMPEG",
-            time: now - 1000 * 60 * 60 * 20,
-        },
-        Conversation {
-            id: "4",
-            title: "Embedding and RAG",
-            time: now - 1000 * 60 * 60 * 20,
-        },
-        Conversation {
-            id: "5",
-            title: "AI工具Claude、Cursor、v0",
-            time: now - 1000 * 60 * 60 * 24 * 3,
-        },
-        Conversation {
-            id: "6",
-            title: "用户请教佛法智慧",
-            time: now - 1000 * 60 * 60 * 24 * 5,
-        },
-        Conversation {
-            id: "7",
-            title: "佛说十二因缘详解",
-            time: now - 1000 * 60 * 60 * 24 * 20,
-        },
-        Conversation {
-            id: "8",
-            title: "风的三重奏: 生命哲思与艺术解读",
-            time: now - 1000 * 60 * 60 * 24 * 25,
-        },
-    ])
+            id: db_conv.id,
+            title: db_conv.title,
+            time: datetime,
+            filepath: db_conv.filepath,
+        }
+    }).collect();
+
+    Json(conversations)
 }

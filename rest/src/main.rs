@@ -8,12 +8,12 @@ use sqlx::sqlite::SqlitePool;
 use std::sync::Arc;
 use tower_http::cors::{Any, CorsLayer};
 
-mod auth;
-use auth::types::{AppState, JwtConfig};
+pub mod auth;
+pub use auth::types::{AppState, JwtConfig};
 use auth::{get_current_user, login, refresh_token};
 
 mod conversation;
-use conversation::get_conversations;
+use conversation::{get_conversations, get_conversation_content};
 
 #[cfg(test)]
 mod tests;
@@ -52,6 +52,7 @@ async fn main() {
     let app = Router::new()
         .route("/", get(|| async { "Hello, Axum!" }))
         .route("/conversations", get(get_conversations))
+        .route("/conversations/{id}", get(get_conversation_content))
         .route("/auth/login", post(login))
         .route("/auth/refresh", post(refresh_token))
         .route("/auth/me", get(get_current_user))
